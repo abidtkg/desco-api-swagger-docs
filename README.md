@@ -43,14 +43,12 @@ desco-api-swagger-docs/
 
 ## API Coverage
 
-| Tag         | Endpoints                                              |
-|-------------|--------------------------------------------------------|
-| Auth        | Register, Login, Logout, Refresh Token                 |
-| Customers   | List, Get, Update, Delete                              |
-| Bills       | List, Get, Pay                                         |
-| Meters      | List, Get, Readings (list & submit)                    |
-| Connections | List, Apply, Get, Update Status                        |
-| Outages     | List, Report, Get                                      |
+> **Note:** This is an example/template spec. Only placeholder endpoints are included. Real endpoints will be added as they become publicly available.
+
+| Tag   | Endpoints    |
+|-------|--------------|
+| Auth  | Login        |
+| Bills | Get by ID    |
 
 Authentication uses **JWT Bearer tokens**. Secured endpoints require an `Authorization: Bearer <token>` header.
 

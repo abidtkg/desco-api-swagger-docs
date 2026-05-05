@@ -1,0 +1,987 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "DESCO API",
+    "description": "REST API documentation for Dhaka Electric Supply Company (DESCO) services including customer management, billing, meter readings, and connection management.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "DESCO API Support",
+      "email": "api-support@desco.org.bd"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.desco.org.bd/v1",
+      "description": "Production server"
+    },
+    {
+      "url": "https://sandbox-api.desco.org.bd/v1",
+      "description": "Sandbox server"
+    }
+  ],
+  "tags": [
+    { "name": "Auth", "description": "Authentication and authorization" },
+    { "name": "Customers", "description": "Customer account management" },
+    { "name": "Bills", "description": "Bill generation and payment" },
+    { "name": "Meters", "description": "Meter reading and management" },
+    { "name": "Connections", "description": "Electricity connection management" },
+    { "name": "Outages", "description": "Outage reporting and status" }
+  ],
+  "security": [
+    { "BearerAuth": [] }
+  ],
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" },
+              "example": {
+                "name": "Rahim Uddin",
+                "email": "rahim@example.com",
+                "phone": "01700000000",
+                "password": "SecurePass@123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "409": { "$ref": "#/components/responses/Conflict" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login with email and password",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" },
+              "example": {
+                "email": "rahim@example.com",
+                "password": "SecurePass@123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout and invalidate token",
+        "responses": {
+          "200": {
+            "description": "Logged out successfully",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/auth/refresh-token": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Refresh access token",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["refresh_token"],
+                "properties": {
+                  "refresh_token": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refreshed",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/customers": {
+      "get": {
+        "tags": ["Customers"],
+        "summary": "List all customers",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/LimitParam" },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Search by name, phone, or account number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of customers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/Pagination" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/Customer" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/customers/{id}": {
+      "get": {
+        "tags": ["Customers"],
+        "summary": "Get a customer by ID",
+        "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+        "responses": {
+          "200": {
+            "description": "Customer details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Customer" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "put": {
+        "tags": ["Customers"],
+        "summary": "Update customer information",
+        "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CustomerUpdateRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Customer updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Customer" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["Customers"],
+        "summary": "Delete a customer",
+        "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+        "responses": {
+          "200": {
+            "description": "Customer deleted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MessageResponse" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/bills": {
+      "get": {
+        "tags": ["Bills"],
+        "summary": "List all bills",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/LimitParam" },
+          {
+            "name": "customer_id",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Filter by customer ID"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["paid", "unpaid", "overdue"]
+            }
+          },
+          {
+            "name": "month",
+            "in": "query",
+            "schema": { "type": "string", "example": "2025-04" },
+            "description": "Filter by billing month (YYYY-MM)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated bill list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/Pagination" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/Bill" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bills/{id}": {
+      "get": {
+        "tags": ["Bills"],
+        "summary": "Get a bill by ID",
+        "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+        "responses": {
+          "200": {
+            "description": "Bill details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Bill" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/bills/{id}/pay": {
+      "post": {
+        "tags": ["Bills"],
+        "summary": "Pay a bill",
+        "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PaymentRequest" },
+              "example": {
+                "payment_method": "bkash",
+                "transaction_id": "TXN123456789",
+                "amount": 1250.50
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payment successful",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PaymentResponse" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/meters": {
+      "get": {
+        "tags": ["Meters"],
+        "summary": "List all meters",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/LimitParam" },
+          {
+            "name": "customer_id",
+            "in": "query",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["prepaid", "postpaid"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of meters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/Pagination" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/Meter" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/meters/{id}": {
+      "get": {
+        "tags": ["Meters"],
+        "summary": "Get meter by ID",
+        "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+        "responses": {
+          "200": {
+            "description": "Meter details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Meter" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/meters/{id}/readings": {
+      "get": {
+        "tags": ["Meters"],
+        "summary": "Get readings for a meter",
+        "parameters": [
+          { "$ref": "#/components/parameters/IdParam" },
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/LimitParam" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Meter readings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "meter_id": { "type": "string" },
+                    "readings": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/MeterReading" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Meters"],
+        "summary": "Submit a meter reading",
+        "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/MeterReadingRequest" },
+              "example": {
+                "reading_value": 4520.5,
+                "reading_date": "2025-04-30",
+                "image_url": "https://storage.desco.org.bd/readings/img001.jpg"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reading submitted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/MeterReading" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/connections": {
+      "get": {
+        "tags": ["Connections"],
+        "summary": "List all connection applications",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/LimitParam" },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["pending", "approved", "rejected", "active", "disconnected"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of connections",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/Pagination" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/Connection" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Connections"],
+        "summary": "Apply for a new electricity connection",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ConnectionRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Connection application submitted",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Connection" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" }
+        }
+      }
+    },
+    "/connections/{id}": {
+      "get": {
+        "tags": ["Connections"],
+        "summary": "Get connection details",
+        "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+        "responses": {
+          "200": {
+            "description": "Connection details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Connection" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      },
+      "patch": {
+        "tags": ["Connections"],
+        "summary": "Update connection status (admin)",
+        "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": ["approved", "rejected", "disconnected"]
+                  },
+                  "remarks": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Connection status updated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Connection" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/outages": {
+      "get": {
+        "tags": ["Outages"],
+        "summary": "List all outage reports",
+        "parameters": [
+          { "$ref": "#/components/parameters/PageParam" },
+          { "$ref": "#/components/parameters/LimitParam" },
+          {
+            "name": "area",
+            "in": "query",
+            "schema": { "type": "string" },
+            "description": "Filter by area or zone"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["open", "in_progress", "resolved"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of outage reports",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    { "$ref": "#/components/schemas/Pagination" },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/Outage" }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Outages"],
+        "summary": "Report a new outage",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OutageRequest" },
+              "example": {
+                "area": "Mirpur-10",
+                "description": "Power outage since 3 PM affecting entire block",
+                "location": { "lat": 23.8041, "lng": 90.3674 }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Outage reported",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Outage" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/outages/{id}": {
+      "get": {
+        "tags": ["Outages"],
+        "summary": "Get outage report by ID",
+        "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+        "responses": {
+          "200": {
+            "description": "Outage details",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Outage" }
+              }
+            }
+          },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "parameters": {
+      "IdParam": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string" }
+      },
+      "PageParam": {
+        "name": "page",
+        "in": "query",
+        "schema": { "type": "integer", "default": 1, "minimum": 1 }
+      },
+      "LimitParam": {
+        "name": "limit",
+        "in": "query",
+        "schema": { "type": "integer", "default": 15, "minimum": 1, "maximum": 100 }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Validation error",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Authentication required or token invalid",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Resource not found",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "Resource already exists",
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["name", "email", "phone", "password"],
+        "properties": {
+          "name": { "type": "string", "example": "Rahim Uddin" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": "string", "example": "01700000000" },
+          "password": { "type": "string", "format": "password", "minLength": 8 }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "format": "password" }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": { "type": "string" },
+          "refresh_token": { "type": "string" },
+          "token_type": { "type": "string", "example": "Bearer" },
+          "expires_in": { "type": "integer", "example": 3600 },
+          "user": { "$ref": "#/components/schemas/User" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "phone": { "type": "string" },
+          "role": { "type": "string", "enum": ["admin", "staff", "customer"] },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "account_number": { "type": "string", "example": "DESCO-2025-001234" },
+          "name": { "type": "string" },
+          "email": { "type": "string" },
+          "phone": { "type": "string" },
+          "address": { "type": "string" },
+          "zone": { "type": "string", "example": "Mirpur" },
+          "category": {
+            "type": "string",
+            "enum": ["residential", "commercial", "industrial"]
+          },
+          "status": { "type": "string", "enum": ["active", "inactive", "suspended"] },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CustomerUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "phone": { "type": "string" },
+          "address": { "type": "string" }
+        }
+      },
+      "Bill": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "bill_number": { "type": "string", "example": "BILL-2025-04-001234" },
+          "customer_id": { "type": "string" },
+          "meter_id": { "type": "string" },
+          "billing_month": { "type": "string", "example": "2025-04" },
+          "previous_reading": { "type": "number", "example": 4200.0 },
+          "current_reading": { "type": "number", "example": 4520.5 },
+          "units_consumed": { "type": "number", "example": 320.5 },
+          "amount": { "type": "number", "example": 1250.50 },
+          "demand_charge": { "type": "number", "example": 150.0 },
+          "vat": { "type": "number", "example": 112.55 },
+          "total_amount": { "type": "number", "example": 1513.05 },
+          "due_date": { "type": "string", "format": "date" },
+          "status": { "type": "string", "enum": ["paid", "unpaid", "overdue"] },
+          "paid_at": { "type": "string", "format": "date-time", "nullable": true },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "PaymentRequest": {
+        "type": "object",
+        "required": ["payment_method", "transaction_id", "amount"],
+        "properties": {
+          "payment_method": {
+            "type": "string",
+            "enum": ["bkash", "nagad", "rocket", "card", "bank_transfer"]
+          },
+          "transaction_id": { "type": "string" },
+          "amount": { "type": "number", "minimum": 0 }
+        }
+      },
+      "PaymentResponse": {
+        "type": "object",
+        "properties": {
+          "bill_id": { "type": "string" },
+          "payment_id": { "type": "string" },
+          "status": { "type": "string", "example": "paid" },
+          "paid_amount": { "type": "number" },
+          "paid_at": { "type": "string", "format": "date-time" },
+          "receipt_number": { "type": "string" }
+        }
+      },
+      "Meter": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "meter_number": { "type": "string", "example": "MTR-001234" },
+          "customer_id": { "type": "string" },
+          "type": { "type": "string", "enum": ["prepaid", "postpaid"] },
+          "phase": { "type": "string", "enum": ["single", "three"] },
+          "capacity_kw": { "type": "number", "example": 5.0 },
+          "installation_date": { "type": "string", "format": "date" },
+          "last_reading": { "type": "number" },
+          "last_reading_date": { "type": "string", "format": "date" },
+          "status": { "type": "string", "enum": ["active", "faulty", "replaced"] }
+        }
+      },
+      "MeterReading": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "meter_id": { "type": "string" },
+          "reading_value": { "type": "number" },
+          "reading_date": { "type": "string", "format": "date" },
+          "image_url": { "type": "string", "nullable": true },
+          "submitted_by": { "type": "string" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "MeterReadingRequest": {
+        "type": "object",
+        "required": ["reading_value", "reading_date"],
+        "properties": {
+          "reading_value": { "type": "number", "minimum": 0 },
+          "reading_date": { "type": "string", "format": "date" },
+          "image_url": { "type": "string", "nullable": true }
+        }
+      },
+      "Connection": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "application_number": { "type": "string", "example": "CONN-2025-00456" },
+          "customer_id": { "type": "string" },
+          "address": { "type": "string" },
+          "zone": { "type": "string" },
+          "connection_type": {
+            "type": "string",
+            "enum": ["residential", "commercial", "industrial"]
+          },
+          "requested_load_kw": { "type": "number" },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "approved", "rejected", "active", "disconnected"]
+          },
+          "remarks": { "type": "string", "nullable": true },
+          "applied_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ConnectionRequest": {
+        "type": "object",
+        "required": ["address", "zone", "connection_type", "requested_load_kw"],
+        "properties": {
+          "address": { "type": "string" },
+          "zone": { "type": "string" },
+          "connection_type": {
+            "type": "string",
+            "enum": ["residential", "commercial", "industrial"]
+          },
+          "requested_load_kw": { "type": "number", "minimum": 0.5 }
+        }
+      },
+      "Outage": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "area": { "type": "string" },
+          "description": { "type": "string" },
+          "location": {
+            "type": "object",
+            "properties": {
+              "lat": { "type": "number" },
+              "lng": { "type": "number" }
+            }
+          },
+          "reported_by": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["open", "in_progress", "resolved"]
+          },
+          "resolved_at": { "type": "string", "format": "date-time", "nullable": true },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "OutageRequest": {
+        "type": "object",
+        "required": ["area", "description"],
+        "properties": {
+          "area": { "type": "string" },
+          "description": { "type": "string" },
+          "location": {
+            "type": "object",
+            "properties": {
+              "lat": { "type": "number" },
+              "lng": { "type": "number" }
+            }
+          }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total_pages": { "type": "integer" }
+        }
+      },
+      "MessageResponse": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": { "type": "string" },
+          "message": { "type": "string" },
+          "details": {
+            "type": "array",
+            "items": { "type": "string" },
+            "nullable": true
+          }
+        }
+      }
+    }
+  }
+}

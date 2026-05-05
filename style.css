@@ -1,0 +1,74 @@
+/* DESCO API Swagger Docs — custom branding */
+
+body {
+  margin: 0;
+  background: #f5f7fa;
+}
+
+/* Top bar */
+.swagger-ui .topbar {
+  background-color: #1a3c6e;
+  padding: 10px 0;
+}
+
+.swagger-ui .topbar .download-url-wrapper .select-label span,
+.swagger-ui .topbar a {
+  color: #ffffff;
+}
+
+.swagger-ui .topbar-wrapper img {
+  content: url("assets/desco-logo.png");
+  height: 40px;
+  width: auto;
+}
+
+/* Info section */
+.swagger-ui .info .title {
+  color: #1a3c6e;
+}
+
+.swagger-ui .info a {
+  color: #1a6eb3;
+}
+
+/* Operation blocks */
+.swagger-ui .opblock.opblock-post .opblock-summary-method {
+  background: #1a6eb3;
+}
+
+.swagger-ui .opblock.opblock-get .opblock-summary-method {
+  background: #2e7d32;
+}
+
+.swagger-ui .opblock.opblock-put .opblock-summary-method {
+  background: #e65100;
+}
+
+.swagger-ui .opblock.opblock-patch .opblock-summary-method {
+  background: #6a1b9a;
+}
+
+.swagger-ui .opblock.opblock-delete .opblock-summary-method {
+  background: #c62828;
+}
+
+/* Authorize button */
+.swagger-ui .btn.authorize {
+  color: #1a3c6e;
+  border-color: #1a3c6e;
+}
+
+.swagger-ui .btn.authorize svg {
+  fill: #1a3c6e;
+}
+
+/* Execute button */
+.swagger-ui .btn.execute {
+  background-color: #1a3c6e;
+  border-color: #1a3c6e;
+}
+
+/* Response codes */
+.swagger-ui .responses-table .response-col_status {
+  font-weight: 700;
+}

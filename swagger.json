@@ -17,62 +17,15 @@
   ],
   "tags": [
     {
-      "name": "Auth",
-      "description": "Authentication and authorization"
-    },
-    {
       "name": "Customers",
       "description": "Customer account management"
     },
     {
-      "name": "Bills",
-      "description": "Bill generation and payment"
-    }
-  ],
-  "security": [
-    {
-      "BearerAuth": []
+      "name": "Electricity Reports",
+      "description": "Bill reporting and analytics"
     }
   ],
   "paths": {
-    "/auth/login": {
-      "post": {
-        "tags": [
-          "Auth"
-        ],
-        "summary": "Login with email and password",
-        "security": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
-              },
-              "example": {
-                "email": "rahim@example.com",
-                "password": "SecurePass@123"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Login successful",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthResponse"
-                }
-              }
-            }
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          }
-        }
-      }
-    },
     "/api/unified/customer/getCustomerInfo": {
       "get": {
         "tags": [
@@ -209,20 +162,55 @@
         }
       }
     },
-    "/bills/{id}": {
+    "/api/unified/customer/getCustomerDailyConsumption": {
       "get": {
         "tags": [
-          "Bills"
+          "Electricity Reports"
         ],
-        "summary": "Get a bill by ID",
+        "summary": "Get customer daily consumption upto 30 days",
         "parameters": [
           {
-            "$ref": "#/components/parameters/IdParam"
+            "name": "accountNo",
+            "in": "query",
+            "required": true,
+            "description": "ID of the customer to retrieve",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "meterNo",
+            "in": "query",
+            "required": true,
+            "description": "ID of the meter to retrieve",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "in": "query",
+            "required": true,
+            "description": "Start date for consumption data (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "dateTo",
+            "in": "query",
+            "required": true,
+            "description": "End date for consumption data (YYYY-MM-DD)",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Bill details",
+            "description": "Details",
             "content": {
               "application/json": {
                 "schema": {
@@ -233,9 +221,49 @@
           },
           "404": {
             "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/unified/customer/getBalance": {
+      "get": {
+        "tags": [
+          "Electricity Reports"
+        ],
+        "summary": "Get customer balance",
+        "parameters": [
+          {
+            "name": "accountNo",
+            "in": "query",
+            "required": true,
+            "description": "ID of the customer to retrieve",
+            "schema": {
+              "type": "string"
+            }
           },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
+          {
+            "name": "meterNo",
+            "in": "query",
+            "required": true,
+            "description": "ID of the meter to retrieve",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Bill"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
           }
         }
       }
